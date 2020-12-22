@@ -2,11 +2,14 @@ import { refs } from './js/refs';
 import apiService from './js/apiService';
 import createCardImage from './js/card';
 import debounce from 'lodash.debounce';
-import InfiniteScroll from '../node_modules/infinite-scroll';
-import '../node_modules/basiclightbox/dist/basicLightbox.min.css';
+import 'basiclightbox/dist/basicLightbox.min.css';
 import './styles.css';
 
 refs.form.addEventListener('input', debounce(searchImages, 700));
+refs.allForm.addEventListener('submit', event => {
+  event.preventDefault();
+  searchImages();
+});
 
 function searchImages() {
   apiService.query = refs.form.value;
@@ -14,38 +17,54 @@ function searchImages() {
     apiService.resetPage();
     apiService.fetchImages().then(hits => {
       createCardImage(hits);
-      refs.button.classList.remove('is-hidden');
-      scroll(apiService.query);
+      // refs.button.classList.remove('is-hidden');
+
+      InfiniteScroll();
     });
   }
   refs.gallery.innerHTML = '';
+
+  // refs.button.classList.add('is-hidden');
 }
 
-refs.button.addEventListener('click', loadMore);
+// реализация бесконечного скрола
+function InfiniteScroll() {
+  window.addEventListener('scroll', debounce(scrolling, 500));
+  function scrolling() {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-function loadMore() {
-  apiService.fetchImages().then(hits => {
-    createCardImage(hits);
+    // console.log({ scrollTop, scrollHeight, clientHeight });
 
+    if (clientHeight + scrollTop >= scrollHeight - 5) {
+      // show the loading animation
+      showLoading();
+    }
+  }
+  function showLoading() {
+    // refs.button.classList.add('is-hidden');
+    refs.loadingImg.classList.add('show');
     setTimeout(() => {
-      window.scrollBy({
-        top: 3000,
-        left: 100,
-        behavior: 'smooth',
+      apiService.fetchImages().then(hits => {
+        createCardImage(hits);
+        refs.loadingImg.classList.remove('show');
       });
     }, 1000);
-  });
+  }
 }
+// Реализация кнопки Load More
 
-function scroll() {
-  const infScroll = new InfiniteScroll(refs.gallery, {
-    path: `https://pixabay.com/api/?image_type=photo&orientation=horizontal&q=${apiService.query}&page={{#}}&per_page=12&key=19522595-24b394bcd15e2754e0ed68cbf`,
-    append: false,
-    responseType: 'text',
-  });
-  infScroll.on('load.infiniteScroll', function (event, response) {
-    const data = JSON.parse(response);
+// refs.button.addEventListener('click', loadMore);
 
-    createCardImage(data.hits);
-  });
-}
+// function loadMore() {
+//   apiService.fetchImages().then(hits => {
+//     createCardImage(hits);
+
+//     setTimeout(() => {
+//       window.scrollBy({
+//         top: 3000,
+//         left: 100,
+//         behavior: 'smooth',
+//       });
+//     }, 1000);
+//   });
+// }
