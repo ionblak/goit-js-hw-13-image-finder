@@ -36,7 +36,6 @@ function InfiniteScroll() {
     // console.log({ scrollTop, scrollHeight, clientHeight });
 
     if (clientHeight + scrollTop >= scrollHeight - 5) {
-      // show the loading animation
       showLoading();
     }
   }
