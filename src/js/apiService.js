@@ -10,7 +10,8 @@ export default {
       .then(({ hits }) => {
         this.page += 1;
         return hits;
-      });
+      })
+      .catch(error => console.log(error));
   },
   resetPage() {
     this.page = 1;
